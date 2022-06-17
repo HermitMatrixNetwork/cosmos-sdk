@@ -19,6 +19,7 @@ var (
 	KeyInflationMin        = []byte("InflationMin")
 	KeyGoalBonded          = []byte("GoalBonded")
 	KeyBlocksPerYear       = []byte("BlocksPerYear")
+	KeyMaxTokenSupply      = []byte("MaxTokenSupply")
 )
 
 // ParamTable for minting module.
@@ -78,6 +79,10 @@ func (p Params) Validate() error {
 			p.InflationMax, p.InflationMin,
 		)
 	}
+	// by boxi
+	if err := validateMaxTokenSupply(p.MaxTokenSupply); err != nil {
+		return err
+	}
 
 	return nil
 
@@ -98,6 +103,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyInflationMin, &p.InflationMin, validateInflationMin),
 		paramtypes.NewParamSetPair(KeyGoalBonded, &p.GoalBonded, validateGoalBonded),
 		paramtypes.NewParamSetPair(KeyBlocksPerYear, &p.BlocksPerYear, validateBlocksPerYear),
+		paramtypes.NewParamSetPair(KeyMaxTokenSupply, &p.MaxTokenSupply, validateMaxTokenSupply),
 	}
 }
 
@@ -189,6 +195,19 @@ func validateBlocksPerYear(i interface{}) error {
 
 	if v == 0 {
 		return fmt.Errorf("blocks per year must be positive: %d", v)
+	}
+
+	return nil
+}
+
+func validateMaxTokenSupply(i interface{}) error {
+	v, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("MaxTokenSupply cannot be negative: %s", v)
 	}
 
 	return nil
